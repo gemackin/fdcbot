@@ -16,7 +16,11 @@ class Amount:
             return Amount()
         if len(strings) == 1:
             split = strings[0].split()
-            return Amount(float(split[0]), split[1])
+            if split[1]:
+                temp = split[1]
+            else:
+                temp = None
+            return Amount(float(split[0]), temp)
         # This code only runs if there were multiple measurements
         amounts = []
         for string in strings:
@@ -80,12 +84,17 @@ class Amount:
         return self.value / divisor.convert(self.unit).value
     
     def __str__(self):
-        if not self.value or not self.unit:
+        if not (self.value is None) and not self.unit:
+            return str(round(self.value)) + ' units'
+        if not self.exists():
             return ''
         return str(round(self.value)) + ' ' + self.unit.lower()
     
     def exists(self):
-        return self.value and self.unit
+        return not (self.value is None) and self.unit
+    
+    def copy(self):
+        return Amount(self.value, self.unit)
 
 # Recognized units as converted to a standardized form
 units = {
@@ -94,6 +103,7 @@ units = {
     'KG': Amount(1000, 'G'),
     'OZ': Amount(28.34952, 'G'),
     'LB': Amount(453.592, 'G'),
+    'LBS': Amount(453.592, 'G'),
     'KCAL': Amount(1.0, 'KCAL'),
     'KJ': Amount(0.239006, 'KCAL'),
     'IU': Amount(1.0, 'IU')

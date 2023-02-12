@@ -8,13 +8,16 @@ class Product:
     # Constructs a Product based on a given food (as JSON)
     def __init__(self, food):
         self.fdcId = food.get('fdcId')
-        self.desc = utils.formatName(food.get('description').upper())
+        self.desc = utils.removeParentheses(food.get('description').upper())
         try:
             self.brand = food.get('brandName')
             self.totalSize = Amount.strInit(food.get('packageWeight'))
             self.servingSize = Amount(food.get('servingSize'), food.get('servingSizeUnit'))
         except:
             pass
+        if not self.totalSize.exists():
+            if food.get('dataType') == 'Survey (FNDDS)':
+                self.totalSize = Amount(100.0, 'G')
         # NOTE: FDC stores nutrition facts per *container*, not *serving*
         self.nutritionFacts = nf.NutritionFacts(food)
 

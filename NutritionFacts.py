@@ -8,13 +8,13 @@ import pandas as pd # Series
 dvGoal = {
     'Energy': Amount(2000.0, 'KCAL'),
     'Protein': Amount(50.0, 'G'),
-    'Carbohydrate, by difference': Amount(275.0, 'G'),
-    'Fiber, total dietary': Amount(28.0, 'G'),
-    'Sugars, total including NLEA': Amount(50.0, 'G'),
-    'Total lipid (fat)': Amount(78.0, 'G'),
+    'Carbohydrate': Amount(275.0, 'G'),
+    'Fiber': Amount(28.0, 'G'),
+    'Sugars': Amount(50.0, 'G'),
+    'Total lipid': Amount(78.0, 'G'),
     'Cholesterol': Amount(300.0, 'MG'),
     'Vitamin A, IU': Amount(3000.0, 'IU'),
-    'Vitamin C, total ascorbic acid': Amount(90.0, 'MG'),
+    'Vitamin C': Amount(90.0, 'MG'),
     'Sodium, Na': Amount(2300.0, 'MG'),
     'Iron, Fe': Amount(18.0, 'MG'),
     'Magnesium, Mg': Amount(420.0, 'MG'),
@@ -38,7 +38,7 @@ class NutritionFacts:
         for trackedNutrient in dvGoal:
             key = utils.delimit(trackedNutrient, ',', '(')[0].rstrip()
             for nutrient in food.get('foodNutrients'):
-                if nutrient.get('nutrientName') == trackedNutrient:
+                if nutrient.get('nutrientName').find(trackedNutrient) >= 0:
                     value = Amount(nutrient.get('value'), nutrient.get('unitName'))
                     tempDict[key] = value.addAmt(tempDict.get(key))
             if tempDict.get(key) is None:
@@ -76,12 +76,13 @@ class NutritionFacts:
         self.facts = tempDict
         return self
     
-    # Multiplies all nutrition facts by a scalar multiple
+    # Multiplies all nutrition facts by a scalar multiple and returns a new object
     def scale(self, scalar):
         tempDict = {}
         for key, value in self.facts.items():
-            tempDict[key] = value.scale(scalar)
-        return self
+            valueCopy = value.copy()
+            tempDict[key] = valueCopy.scale(scalar)
+        return NutritionFacts(factsDict = tempDict)
 
     # Returns nutrition facts as a Series of percentages daily value
     def getDV(self, goal=dvGoal):

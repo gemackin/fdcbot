@@ -51,13 +51,13 @@ class Recipe:
     
     # Returns this recipe as a DataFrame of nutrition facts
     def getDF(self):
-        totals = self.getNF().toSeries()
-        self.nfdf = pd.DataFrame(totals).T
-        rows = []
-        for ing in self.ingredients:
-            amt = self.ingredients.get(ing)
+        rows = [self.getNF().toSeries()]
+        for ing, amt in self.ingredients.items():
             # FDC's nutrition facts are based on total size
-            numServings = amt.divAmt(ing.totalSize)
+            if ing.totalSize.exists():
+                numServings = amt.divAmt(ing.totalSize)
+            else:
+                numServings = amt.value
             ingNF = ing.nutritionFacts.scale(numServings)
             self.nutritionFacts.addNF(ingNF)
             seriesStart = pd.Series({
@@ -68,13 +68,17 @@ class Recipe:
             })
             temp = pd.concat([seriesStart, ingNF.toSeries()])
             rows.append(temp)
-        self.nfdf = pd.concat([totals, *rows], axis=1, ignore_index=True).T
+        self.nfdf = pd.concat(rows, axis=1).T
 
         # Reindexing to put names and IDs first
         self.nfdf = pd.concat([self.nfdf.iloc[:,-4:], self.nfdf.iloc[:,:-4]], axis=1)
+        # Putting the totals row on the bottom
+        firstRow = self.nfdf.iloc[0,]
+        self.nfdf = self.nfdf.iloc[1:,]
+        self.nfdf.loc[len(self.nfdf.index) + 1] = firstRow
         return self.nfdf
     
     # Exports this recipe as a .CSV file
     def exportCSV(self, path):
         self.getDF()
-        return self.nfdf.to_csv(path, index=False)
+        return self.nfdf.to_csv(path, index = False)

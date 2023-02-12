@@ -18,7 +18,9 @@ substitutions = {
 
 # List of ingredient names that are never branded
 diffDataTypes = {
-     'egg': 'Foundation'
+     'egg': 'Foundation',
+     'water': 'Survey%20(FNDDS)',
+     'oil': 'Survey%20(FNDDS)'
 }
 
 # Turns a unit string into a standardized code
@@ -34,7 +36,11 @@ def getUnitCode(unit):
 # (Ex. '1 gram cinnamon' -> 1.0, 'G', 'cinnamon')
 def parseLine(line):
     words = line.split()
-    value = float(words[0])
+    try:
+        value = float(words[0])
+    except:
+         value = None
+         words.insert(0, '')
     unit = getUnitCode(words[1].lower())
     if not unit: # If unit is not recognized
         try:
@@ -51,22 +57,26 @@ def parseLine(line):
     for before, after in substitutions.items():
          if name.lower() == before:
               name = after
-    # print('Ingredient:', utils.formatName(line))
+    print('Ingredient:', utils.formatName(line))
 
     dataType = 'Branded'
     for item in diffDataTypes.keys():
          if name.find(item) >= 0:
               dataType = diffDataTypes.get(item)
     
-    product = Product(utils.getFood(name, dtype = dataType))
-    # print('--- Loaded "{}"'.format(utils.formatName(product.desc)), end=", ")
+    try:
+        product = Product(utils.getFood(name, dtype = dataType))
+        print('--- Loaded "{}", '.format(utils.formatName(product.desc)), end = '')
+    except:
+         product = None
+         print('--- Failed to load product, ', end = '')
 
     amount = Amount(value, unit)
-    if not unit:
+    if not unit and product.servingSize.exists():
         try:
             amount = product.servingSize.scale(value)
         except:
              pass
-    # print(amount)
+    print(amount)
 
     return (product, amount)

@@ -1,5 +1,6 @@
 import Amount
 from FDCAPI import FDCAPI
+from recipeconverter import RecipeConverter
 
 # Similar to split() but allows multiple delimiters
 def delimit(string, *delimiters):
@@ -28,13 +29,29 @@ def getFood(name, dtype = 'Branded'):
     fdcapi.search(name)
     index = 0
     units = Amount.units.keys()
-    while True:
+    while index < 5:
         food = fdcapi.get(index)
-        # if validServingSize(food, units):
-        size = Amount.Amount.strInit(food.get('packageWeight'))
+        weightString = food.get('packageWeight')
+        size = Amount.Amount.strInit(weightString)
+        # Testing if maybe metric conversion is necessary
+        if not size.unit in units and weightString:
+            weights = weightString.split('/')
+            rc = RecipeConverter()
+            i = 0
+            while not size.unit in units and i < len(weights):
+                try:
+                    metricConversion = rc.convert_volume_to_mass(weights[i] + ' ' + name)
+                    size = Amount.Amount.strInit(metricConversion)
+                except:
+                    pass
+                i += 1
         if size.exists() and size.unit in units or not dtype == 'Branded':
             return food
         index += 1
+    if dtype == 'Survey%20(FNDDS)':
+        raise Exception('Food not found')
+    else:
+        return getFood(name, 'Survey%20(FNDDS)')
 
 # Determines if a food (as JSON) has a valid serving size
 # Not in use since I realized FDC's facts were by container, not serving size
