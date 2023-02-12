@@ -3,14 +3,13 @@
 This program calculates nutrition facts on food products and recipes using the FoodDataCentral API provided by the USDA.
 
 ## Features
----
+
 + Searching foods by name from multiple databases
 + Converting resulting JSON into a usable datatype to store ID, name, nutrition facts, etc.
 + Option to load recipe from a given URL (if website is supported) and store as usable datatype
 + Data visualization of nutrition facts via bar chart or exporting to .csv file
 
 ## Classes
----
 
 ### FDCAPI
 + `modifyEnding(**kwargs)`: Sets tags[^1] for the API to search by
@@ -55,7 +54,7 @@ This program calculates nutrition facts on food products and recipes using the F
 + `len()`: Returns the number of items in the stack
 
 ## Appendable Lists and Dictionaries
----
+
 + `dvGoal` (NutritionFacts.py): 
 + `units` (Amount.py): Maps accepted unit codes to their conversions to standardized amounts
 + `units` (RecipeUtils.py): List of accepted (mass) units and their corresponding unit codes
